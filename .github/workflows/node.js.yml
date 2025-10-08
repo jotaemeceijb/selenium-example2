@@ -9,23 +9,32 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# Define un trabajo llamado 'build' que se ejecutará en un entorno 'ubuntu-latest'
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
+    # Paso 1: Extraer el código del repositorio
+    - name: Checkout del código
+      uses: actions/checkout@v4
+
+    # Paso 2: Configurar Node.js en la versión 20
+    - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+        node-version: '20'
+
+    # Paso 3: Instalar las dependencias del proyecto
+    - name: Instalar dependencias
+      run: npm install
+
+    # Paso 4: Instalar Google Chrome y dependencias adicionales
+    - name: Instalar Google Chrome y Xvfb para entorno sin interfaz
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable xvfb
+
+    # Paso 5: Ejecutar las pruebas de regresión en un entorno virtual sin interfaz
+    - name: Ejecutar pruebas de regresión con Selenium
+      run: xvfb-run --auto-servernum npm test
